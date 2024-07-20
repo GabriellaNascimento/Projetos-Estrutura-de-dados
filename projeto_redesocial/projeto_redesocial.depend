@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1721505394 source:c:\users\gabi\documents\github\projeto_redesocial\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdint.h>
+
