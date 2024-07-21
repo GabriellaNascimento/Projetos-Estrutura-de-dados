@@ -1,12 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
-//Estrutura de um nó
 typedef struct _no{
-    void* val;
-    struct no *ant;
-    struct no *prox;
+    char* val;
+    struct _no *ant;
+    struct _no *prox;
 } No;
 
 typedef struct _lista{
@@ -15,16 +14,57 @@ typedef struct _lista{
     size_t tam;
 } Lista;
 
-No *cria_no(void *nome){
+size_t m_strlen(const char *str) {
+    size_t comp = 0;
+
+    // Percorre a string atÃ© encontrar o caractere nulo '\0'
+    while (*str != '\0') {
+        comp++;
+        str++;
+    }
+
+    return comp;
+}
+
+char* m_strcpy(char *destino, const char *origem) {
+    char *ptr = destino; // Guarda o ponteiro inicial do destino
+
+    // Copia cada caractere da origem para o destino atÃ© encontrar o caractere nulo '\0'
+    while (*origem != '\0') {
+        *destino = *origem;
+        destino++;
+        origem++;
+    }
+
+    // Adiciona o caractere nulo de tÃ©rmino no final da string destino
+    *destino = '\0';
+
+    return ptr; // Retorna o ponteiro inicial do destino
+}
+
+int m_strcmp(const char *str1, const char *str2) {
+    // Percorre os caracteres das duas strings enquanto sÃ£o iguais
+    while (*str1 && *str2 && *str1 == *str2) {
+        str1++;
+        str2++;
+    }
+
+    // Retorna a diferenÃ§a entre os caracteres encontrados ou 0 se as strings sÃ£o iguais
+    return (unsigned char)*str1 - (unsigned char)*str2;
+}
+
+
+No *cria_no(char *nome){
     No *no_criado = (No*) calloc(1, sizeof(No));
-    no_criado->val = strdup(nome);
+    no_criado->val = (char*) malloc(m_strlen(nome) + 1);
+    m_strcpy(no_criado->val, nome);
     no_criado->ant = no_criado;
     no_criado->prox = no_criado;
 
     return no_criado;
 }
 
-Lista *cria_lisra(){
+Lista *cria_lista(){
     Lista *L = (Lista*) calloc(1, sizeof(Lista));
     L->inicio = NULL;
     L->fim = NULL;
@@ -37,7 +77,7 @@ int lista_vazia(const Lista *L){
     return (L->tam == 0);
 }
 
-void add(Lista *L, void *val){
+void adicionar_no(Lista *L, char *val){
     No *no = cria_no(val);
 
     if((lista_vazia(L))){
@@ -55,74 +95,54 @@ void add(Lista *L, void *val){
     L->tam++;
 }
 
-void mostra_lista(const Lista *L){
-    if(lista_vazia(L)){
-        printf("L -> NULL");
-    }else{
-
-        No *p = L->inicio;
-
-
-        do{
-            printf(" %s ->", p->val);
-            p = p->prox;
-        }while(p != L->inicio);
-
-    }
-    printf("\nTam: %d\n\n", L->tam);
-
-}
-
-void nova_mostrar(const Lista *L, void *nome, FILE* output){
+void mostrar(const Lista *L, char *nome, FILE* output){
     if(lista_vazia(L)){
         printf("L -> NULL");
 
     }else{
         No *p = L->inicio;
 
-        while(strcmp(p->val, nome) != 0){
+        while(m_strcmp(p->val, nome) != 0){
             p = p->prox;
         }
 
-        No *ant = p->ant;
-        No *prox = p->prox;
+        //No *ant = p->ant;
+        //No *prox = p->prox;
 
-        fprintf(output, "[ OK  ] %s -> %s -> %s\n", ant->val, p->val, prox->val);
+        fprintf(output, "[ OK  ] %s -> %s -> %s\n", p->ant->val, p->val, p->prox->val);
     }
 }
 
 
-int contem_nome(Lista *L, const void *nome){
+int contem_nome(Lista *L, const char *nome){
     if (lista_vazia(L)) {
         return 0;
     }
     No *p = L->inicio;
     do{
-        if (strcmp(p->val, nome) == 0) {
+        if (m_strcmp(p->val, nome) == 0) {
             return 1; // Nome encontrado
         }
         p = p->prox;
     } while (p != L->inicio);
-    return 0; // Nome não encontrado
+    return 0; // Nome nï¿½o encontrado
 }
 
-void remove_nome(Lista *L, void *nome){
+void remove_nome(Lista *L, char *nome){
     No *p = L->inicio;
-            while(strcmp(p->val, nome) != 0){
-            p = p->prox;
-            }
+    while(m_strcmp(p->val, nome) != 0){
+        p = p->prox;
+    }
+
     if (L->tam == 1) {
-            // Único nó na lista
+            // Ãšnico nÃ³ na lista
             L->inicio = NULL;
             L->fim = NULL;
         } else {
+            // NÃ³ estÃ¡ no meio ou nas extremidades
+            p->ant->prox = p->prox;
 
-            // Nó está no meio ou nas extremidades
-            No *ant = p->ant;
-            ant->prox = p->prox;
-
-            No *prox = p->prox;
-            prox->ant = p->ant;
+            p->prox->ant = p->ant;
 
             if (p == L->inicio) {
                 L->inicio = p->prox;
@@ -136,47 +156,44 @@ void remove_nome(Lista *L, void *nome){
         free(p);
         L->tam--;
 }
+
 void processa_linha(char* linha, Lista* L, FILE* output) {
     char comando[10];
-    char nome[100]; // Ajuste o tamanho conforme necessário
+    char nome[100];
 
     // Remove o caractere de nova linha, se presente
-    linha[strcspn(linha, "\n")] = '\0';
+    //linha[strcspn(linha, "\n")] = '\0';
 
     // Usa sscanf para ler o comando e o nome
     if (sscanf(linha, "%9s %[^\n]", comando, nome) == 2) {
-        if (strcmp(comando, "ADD") == 0) {
-            //printf("vai add\n");
-            //printf("%s\n", nome);
+        if (m_strcmp(comando, "ADD") == 0) {
             if(contem_nome(L, nome)){
                 fprintf(output, "[ERROR] %s %s\n", comando, nome);
             }else{
-                add(L, nome);
+                adicionar_no(L, nome);
                 fprintf(output, "[ OK  ] %s %s\n", comando, nome);
             }
-        } else if (strcmp(comando, "REMOVE") == 0) {
+        } else if (m_strcmp(comando, "REMOVE") == 0) {
             if(contem_nome(L, nome)){
                 remove_nome(L, nome);
                 fprintf(output, "[ OK  ] %s %s\n", comando, nome);
             }else{
                 fprintf(output, "[ERROR] %s %s\n", comando, nome);
             }
-        } else if (strcmp(comando, "SHOW") == 0) {
+        } else if (m_strcmp(comando, "SHOW") == 0) {
             if(contem_nome(L, nome)){
-                nova_mostrar(L, nome, output);
+                mostrar(L, nome, output);
             }else{
                 fprintf(output, "[ERROR] ?<-%s->?\n", nome);
             }
-        } else {
-            printf("vai error\n");
         }
     } else {
-        fprintf(output, "[ ERROR ] %s\n", linha);
+        fprintf(output, "[ERROR]\n");
     }
 }
 
 int main(int argc, char* argv[]) {
-    Lista *L = cria_lisra();
+    Lista *L = cria_lista();
 
 	// Exibindo a quantidade de argumentos
 	printf("Quantidade de argumentos (argc): %i\n", argc);
@@ -186,25 +203,23 @@ int main(int argc, char* argv[]) {
 		printf("Argumento %i (argv[%i]): %s\n", i, i, argv[i]);
 	}
 
-	// Abrindo os arquivos com as permissoes corretas
+	// Abrindo os arquivos com as permissÃµes corretas
 	FILE* input = fopen(argv[1], "r");
 	FILE* output = fopen(argv[2], "w");
 
 	 /*if (input == NULL) {
-        perror("Erro ao abrir o arquivo de saída");
+        perror("Erro ao abrir o arquivo de saï¿½da");
         fclose(input);
         return 1;
     }*/
 
     char l[100];
-    char *result;
     int i = 1;
     while (!feof(input)) {
-        result = fgets(l, 100, input);
+        fgets(l, 100, input);
         processa_linha(l, L, output);
         i++;
     }
-
 
 	// Fechando os arquivos
 	fclose(input);
