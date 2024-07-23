@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct _no{
     char* val;
@@ -55,9 +56,8 @@ int m_strcmp(const char *str1, const char *str2) {
 
 No *cria_no(char *nome){
     No *no_criado = (No*) calloc(1, sizeof(No));
-    //no_criado->val = (char*) malloc(m_strlen(nome) + 1);
-    //m_strcpy(no_criado->val, nome);
-    no_criado->val = nome;
+    no_criado->val = (char*) malloc(m_strlen(nome) + 1);
+    m_strcpy(no_criado->val, nome);
     no_criado->ant = no_criado;
     no_criado->prox = no_criado;
 
@@ -106,10 +106,10 @@ void mostrar(const Lista *L, char *nome, FILE* output){
             p = p->prox;
         }
 
-        No *ant = p->ant;
-        No *prox = p->prox;
+        //No *ant = p->ant;
+        //No *prox = p->prox;
 
-        fprintf(output, "[ OK  ] %s -> %s -> %s\n", ant->val, p->val, prox->val);
+        fprintf(output, "[ OK  ] %s<- %s -> %s\n", p->ant->val, p->val, p->prox->val);
     }
 }
 
@@ -140,11 +140,9 @@ void remove_nome(Lista *L, char *nome){
             L->fim = NULL;
         } else {
             // Nó está no meio ou nas extremidades
-            No *ant = p->ant;
-            ant->prox = p->prox;
+            p->ant->prox = p->prox;
 
-            No *prox = p->prox;
-            prox->ant = p->ant;
+            p->prox->ant = p->ant;
 
             if (p == L->inicio) {
                 L->inicio = p->prox;

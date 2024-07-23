@@ -109,7 +109,7 @@ void mostrar(const Lista *L, char *nome, FILE* output){
         //No *ant = p->ant;
         //No *prox = p->prox;
 
-        fprintf(output, "[ OK  ] %s -> %s -> %s\n", p->ant->val, p->val, p->prox->val);
+        fprintf(output, "[ OK  ] %s<-%s->%s\n", p->ant->val, p->val, p->prox->val);
     }
 }
 
