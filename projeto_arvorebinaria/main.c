@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct arvore
+typedef struct no
 {
     int ordem;
     char nome[51];
@@ -11,51 +11,51 @@ typedef struct arvore
     int tamanho;
 
     // Filho da direita
-    struct arvore *Direita ;
+    struct no *Direita ;
     // Filho da esquerda
-    struct arvore *Esquerda ;
-} Arvore;
+    struct no *Esquerda ;
+} No;
 
-Arvore* criar_arvore()
+No* criar_arvore()
 {
     return NULL;    
 }
 
-int controla = 0; //Controle da ordem de inserção na árvore
-void insere_no(Arvore** A, char nome[], char tipo[], int tamanho)
+int contador = 0; //Controle da ordem de inserção na árvore
+void insere_no(No** raiz, char nome[], char tipo[], int tamanho)
 {
-    if (*A == NULL)
+    if (*raiz == NULL)
     {
-        *A = (Arvore*) calloc(1,sizeof(Arvore));
-        (*A)->Direita = NULL;
-        (*A)->Esquerda = NULL;
-        strcpy((*A)->nome, nome);
-        strcpy((*A)->tipo, tipo);
-        (*A)->tamanho = tamanho;
-        (*A)->ordem = controla;
-        controla++;
+        *raiz = (No*) calloc(1,sizeof(No));
+        (*raiz)->Direita = NULL;
+        (*raiz)->Esquerda = NULL;
+        strcpy((*raiz)->nome, nome);
+        strcpy((*raiz)->tipo, tipo);
+        (*raiz)->tamanho = tamanho;
+        (*raiz)->ordem = contador;
+        contador++;
     }else
     {
         // 1 = primeiro arg é maior
         // 0 = os dois arg são iguais
         // -1 = primeiro arg é menor
-        int cmp = strcmp(nome, (*A)->nome);
+        int cmp = strcmp(nome, (*raiz)->nome);
 
         if(cmp > 0)
         {
-            insere_no(&(*A)->Direita, nome, tipo, tamanho);
+            insere_no(&(*raiz)->Direita, nome, tipo, tamanho);
         }
         if(cmp < 0)
         {
-            insere_no(&(*A)->Esquerda, nome, tipo, tamanho);
+            insere_no(&(*raiz)->Esquerda, nome, tipo, tamanho);
         }
         if(cmp == 0)
         {
-            if(strcmp((*A)->tipo, "rw") == 0)
+            if(strcmp((*raiz)->tipo, "rw") == 0)
             {
-                strcpy((*A)->tipo, tipo);
-                (*A)->tamanho = tamanho;
-                (*A)->ordem = controla;
+                strcpy((*raiz)->tipo, tipo);
+                (*raiz)->tamanho = tamanho;
+                (*raiz)->ordem = contador;
             }
         }
     }
@@ -74,7 +74,7 @@ void verifica(int tamanho, FILE *output)
 }
 
 //Percurso pré-ordem - pai, esquerda, direira
-void mostrar_PED(Arvore* A, FILE *output)
+void mostrar_PED(No* A, FILE *output)
 {
     if (A == NULL) return;
 
@@ -85,7 +85,7 @@ void mostrar_PED(Arvore* A, FILE *output)
 }
 
 //Percurso em ordem - esquerda, pai, direita
-void mostrar_EPD(Arvore* A, FILE *output)
+void mostrar_EPD(No* A, FILE *output)
 {
     if (A == NULL) return;
 
@@ -96,7 +96,7 @@ void mostrar_EPD(Arvore* A, FILE *output)
 }
 
 //Percurso pós-ordem - esquerda, direita, pai
-void mostrar_EDP(Arvore* A, FILE *output)
+void mostrar_EDP(No* A, FILE *output)
 {
     if (A == NULL) return;
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 	FILE* output = fopen(argv[2], "w");
 
     // Inicializando a árvore
-    Arvore* A = criar_arvore();
+    No* A = criar_arvore();
 
     // Quantidade de arquivos que serão lidos
     int quant_arquivos;
