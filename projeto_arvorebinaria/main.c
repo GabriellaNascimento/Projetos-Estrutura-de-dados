@@ -56,6 +56,7 @@ void insere_no(No** raiz, char nome[], char tipo[], int tamanho)
                 strcpy((*raiz)->tipo, tipo);
                 (*raiz)->tamanho = tamanho;
                 (*raiz)->ordem = contador;
+                contador++;
             }
         }
     }
