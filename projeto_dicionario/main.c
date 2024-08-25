@@ -1,0 +1,272 @@
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct no
+{
+	int fator_balanceamento; 
+
+    char nome[31];
+	int quant_sinonimos; 
+	char sinonimos[10][30];
+
+    // Filho da direita
+    struct no *Direita ;
+    // Filho da esquerda
+    struct no *Esquerda ;
+} No;
+
+No* criar_arvore()
+{
+    return NULL;    
+}
+
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+
+// Função para obter a altura de um nó
+int altura(No* N) {
+    if (N == NULL)
+        return 0;
+    return 1 + max(altura(N->Esquerda), altura(N->Direita));
+}
+
+int fator_balanceamento(No* N) {
+    if (N == NULL)
+        return 0;
+    return altura(N->Direita) - altura(N->Esquerda);
+}
+
+// Função para rotação à direita
+No* rotacao_direita(No* y) {
+    No* x = y->Esquerda;
+    No* T2 = x->Direita;
+
+    x->Direita = y;
+    y->Esquerda = T2;
+
+    y->fator_balanceamento = fator_balanceamento(y);
+    x->fator_balanceamento = fator_balanceamento(x);
+
+    return x;
+}
+
+// Função para rotação à esquerda
+No* rotacao_esquerda(No* x) {
+    No* y = x->Direita;
+    No* T2 = y->Esquerda;
+
+    y->Esquerda = x;
+    x->Direita = T2;
+
+    x->fator_balanceamento = fator_balanceamento(x);
+    y->fator_balanceamento = fator_balanceamento(y);
+
+    return y;
+}
+
+void insere_no(No** raiz, char nome[], char sinonimos[10][31], int quant_sinonimos)
+{
+    if (*raiz == NULL)
+    {
+        *raiz = (No*) calloc(1,sizeof(No));
+        (*raiz)->Direita = NULL;
+        (*raiz)->Esquerda = NULL;
+        strcpy((*raiz)->nome, nome);
+		//printf("No: %s\n", (*raiz)->nome);
+        for (int i = 0; i < quant_sinonimos; i++) {
+            strcpy((*raiz)->sinonimos[i], sinonimos[i]);
+			//printf("Sin %d: %s\n", i, (*raiz)->sinonimos[i]);
+        }
+        (*raiz)->quant_sinonimos = quant_sinonimos;
+		(*raiz)->fator_balanceamento = 0;
+		
+    }
+    
+	int cmp = strcmp(nome, (*raiz)->nome);
+
+	if(cmp > 0)
+	{
+		insere_no(&(*raiz)->Direita, nome, sinonimos, quant_sinonimos);
+	}
+	if(cmp < 0)
+	{
+		insere_no(&(*raiz)->Esquerda, nome, sinonimos, quant_sinonimos);
+	}
+
+	// Atualizar fator de balanceamento
+    (*raiz)->fator_balanceamento = fator_balanceamento(*raiz);
+	// printf("No: %s\n", (*raiz)->nome);
+	// printf("FDB: %d\n", (*raiz)->fator_balanceamento);
+
+	int valor_balanceamento = (*raiz)->fator_balanceamento;
+	
+    // Caso de rotação à esquerda
+    if (valor_balanceamento > 1 && strcmp(nome, (*raiz)->Direita->nome) > 0) {
+        *raiz = rotacao_esquerda(*raiz);
+    }
+
+    // Caso de rotação à direita
+    if (valor_balanceamento < -1 && strcmp(nome, (*raiz)->Esquerda->nome) < 0) {
+        *raiz = rotacao_direita(*raiz);
+    }
+
+    // Rotação dupla esquerda-direita
+    if (valor_balanceamento > 1 && strcmp(nome, (*raiz)->Direita->nome) < 0) {
+        (*raiz)->Direita = rotacao_direita((*raiz)->Direita);
+        *raiz = rotacao_esquerda(*raiz);
+    }
+
+    // Rotação dupla direita-esquerda
+    if (valor_balanceamento < -1 && strcmp(nome, (*raiz)->Esquerda->nome) > 0) {
+        (*raiz)->Esquerda = rotacao_esquerda((*raiz)->Esquerda);
+        *raiz = rotacao_direita(*raiz);
+    }
+}
+
+//Percurso pré-ordem - pai, esquerda, direira
+void mostrar_PED(No* A)
+{
+    if (A == NULL) return;
+
+    //fprintf(output, "%d %s %s %d", A->ordem, A->nome, A->tipo, A->tamanho);
+    // verifica(A->tamanho, output);
+	printf("Nome: %s, fator: %d\n", A->nome, A->fator_balanceamento);
+    mostrar_PED(A->Esquerda);
+    mostrar_PED(A->Direita);
+}
+
+//Percurso em ordem - esquerda, pai, direita
+void mostrar_EPD(No* A)
+{
+    if (A == NULL) return;
+
+    mostrar_EPD(A->Esquerda);
+	printf("Nome: %s, fator: %d\n", A->nome, A->fator_balanceamento);
+    // fprintf(output, "%d %s %s %d", A->ordem, A->nome, A->tipo, A->tamanho);
+    // verifica(A->tamanho, output);
+    mostrar_EPD(A->Direita);
+}
+
+//Percurso pós-ordem - esquerda, direita, pai
+void mostrar_EDP(No* A)
+{
+    if (A == NULL) return;
+
+    mostrar_EDP(A->Esquerda);
+    mostrar_EDP(A->Direita);
+	printf("Nome: %s, fator: %d\n", A->nome, A->fator_balanceamento);
+    // fprintf(output, "%d %s %s %d", A->ordem, A->nome, A->tipo, A->tamanho);
+    // verifica(A->tamanho, output);
+
+}
+
+void buscar_palavra(No* A, char palavra[])
+{
+	// 1 = primeiro arg é maior
+    // 0 = os dois arg são iguais
+    // -1 = primeiro arg é menor
+	int cmp = strcmp(palavra, A->nome);
+	if(cmp > 0)
+	{
+		printf("%s->", A->nome);
+		if(A->Direita == NULL)
+		{
+			printf("?]\n-");
+		}else
+		{
+			buscar_palavra(A->Direita, palavra);
+		}
+	
+	}
+	if(cmp < 0)
+	{
+		printf("%s->", A->nome);
+		if(A->Direita == NULL)
+		{
+			printf("?]\n-");
+		}else
+		{
+			buscar_palavra(A->Esquerda, palavra);
+		}
+	}
+	if(cmp == 0){
+		printf("%s]\n", A->nome);
+		for(int i = 0; i < A->quant_sinonimos; i++)
+		{
+			printf("%s", A->sinonimos[i]);
+			if(i+1 < A->quant_sinonimos){
+				printf(", ");
+			}
+		}
+	}
+}
+
+// Funcao principal
+int main(int argc, char* argv[]) 
+{
+	// Exibindo a quantidade de argumentos
+	printf("Quantidade de argumentos (argc): %i\n", argc);
+	// Iterando sobre o(s) argumento(s) do programa
+	for(uint32_t i = 0; i < argc; i++) 
+    {
+		// Mostrando o argumento i
+		printf("Argumento %i (argv[%i]): %s\n", i, i, argv[i]);
+	}
+
+	// Abrindo os arquivos com as permissoes corretas
+	FILE* input = fopen(argv[1], "r");
+	FILE* output = fopen(argv[2], "w");
+
+	// Inicializando a árvore
+    No* A = criar_arvore();
+
+	// Quantidade de palavras que serão lidas
+    int num_palavras;
+	fscanf(input, "%d", &num_palavras);
+	//printf("Num de palavras: %d\n", num_palavras);
+
+	char palavra[31];
+	int quant_sin;
+	char sinonimos[10][31];
+
+	// Inserção de cada palavra na árvore
+	for(int i = 0; i < num_palavras; i++)
+    {
+        fscanf(input, " %[^ ] %d", palavra, &quant_sin);
+		//printf("Palavra: %s\n", palavra);
+		//printf("Quant de sinonimos: %d\n", quant_sin);
+		for(int j = 0; j < quant_sin; j++){
+			fscanf(input, " %s", sinonimos[j]);
+			//printf("Sinonimo %d: %s\n", j, sinonimos[j]);
+		}
+		insere_no(&A, palavra, sinonimos, quant_sin);
+	}
+
+	// Quantidade de buscas 
+    int num_buscas;
+	fscanf(input, "%d", &num_buscas);
+	printf("Num de buscas: %d\n", num_buscas);
+
+	char palavra_busca[31];
+
+	for(int i = 0; i < num_buscas; i++)
+    {
+		fscanf(input, " %s", palavra_busca);
+		printf("[");
+		buscar_palavra(A, palavra_busca);
+		puts("");
+	}
+
+	//mostrar_EPD(A);
+	
+	// Fechando os arquivos
+	fclose(input);
+	fclose(output);
+
+	// Finalizando programa
+	return 0;
+}
