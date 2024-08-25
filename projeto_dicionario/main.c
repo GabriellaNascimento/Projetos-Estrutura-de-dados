@@ -14,7 +14,7 @@ typedef struct no
 
     char nome[31];
 	int quant_sinonimos; 
-	Sinonimo *sinonimos;
+	char *sinonimos;
 
     // Filho da direita
     struct no *Direita ;
@@ -44,20 +44,6 @@ int fator_balanceamento(No* N) {
     return altura(N->Direita) - altura(N->Esquerda);
 }
 
-void balanceamento(No** raiz) {
-    if (*raiz == NULL) {
-        return;
-    }
-
-    int altura_esquerda = altura((*raiz)->Esquerda);
-    int altura_direita = altura((*raiz)->Direita);
-
-    // O fator de balanceamento é a diferença entre as alturas das subárvores esquerda e direita
-    (*raiz)->fator_balanceamento = 0;
-	(*raiz)->Direita->fator_balanceamento = fator_balanceamento((*raiz)->Direita);
-	(*raiz)->Esquerda->fator_balanceamento = fator_balanceamento((*raiz)->Esquerda);
-}
-
 // Função para rotação à direita
 void rotacao_direita(No** raiz) {
     No* eixo = (*raiz)->Esquerda;
@@ -65,7 +51,8 @@ void rotacao_direita(No** raiz) {
 	eixo->Direita = (*raiz);
 	(*raiz) = eixo;
 
-    balanceamento(raiz);
+    (*raiz)->Direita->fator_balanceamento = 0;
+    (*raiz)->fator_balanceamento = 0;
 }
 
 // Função para rotação à esquerda
@@ -75,7 +62,8 @@ void rotacao_esquerda(No** raiz) {
 	eixo->Esquerda = (*raiz);
     (*raiz) = eixo;
 
-    balanceamento(raiz);
+    (*raiz)->Esquerda->fator_balanceamento = 0;
+    (*raiz)->fator_balanceamento = 0;
 }
 
 void insere_no(No** raiz, char nome[], char sinonimos[], int quant_sinonimos)
@@ -87,9 +75,12 @@ void insere_no(No** raiz, char nome[], char sinonimos[], int quant_sinonimos)
         (*raiz)->Esquerda = NULL;
         strcpy((*raiz)->nome, nome);
 		(*raiz)->quant_sinonimos = quant_sinonimos;
-		// Alocar espaço para os sinônimos
-        (*raiz)->sinonimos = (Sinonimo*) calloc(quant_sinonimos, sizeof(Sinonimo));
 		(*raiz)->fator_balanceamento = 0;
+		// Alocar memória para a string de sinônimos
+        (*raiz)->sinonimos = (char*) calloc(strlen(sinonimos) + 1, sizeof(char));
+        strcpy((*raiz)->sinonimos, sinonimos);
+
+		//printf("No: %s\n", (*raiz)->nome);
     }else{
 		int cmp = strcmp(nome, (*raiz)->nome);
 
@@ -104,34 +95,34 @@ void insere_no(No** raiz, char nome[], char sinonimos[], int quant_sinonimos)
 
 		// Atualizar fator de balanceamento
 		(*raiz)->fator_balanceamento = fator_balanceamento(*raiz);
-		printf("No: %s\n", (*raiz)->nome);
-		printf("Nome: %s\n", nome);
-		printf("FDB: %d\n", (*raiz)->fator_balanceamento);
+		// printf("No: %s\n", (*raiz)->nome);
+		// printf("Nome: %s\n", nome);
+		// printf("FDB: %d\n", (*raiz)->fator_balanceamento);
 
 		int valor_balanceamento = (*raiz)->fator_balanceamento;
 		
 		// Caso de rotação à esquerda
-		if (valor_balanceamento > 1 && strcmp(nome, (*raiz)->Direita->nome) > 0) {
-			rotacao_esquerda(raiz);
-		}
+        if ((*raiz)->fator_balanceamento > 1)
+        {
+            if (strcmp(nome, (*raiz)->Direita->nome) > 0) {
+                rotacao_esquerda(raiz);
+            }
+            else {
+                rotacao_direita(&(*raiz)->Direita);
+                rotacao_esquerda(raiz);
+            }
+        }
 
-		// Caso de rotação à direita
-		if (valor_balanceamento < -1 && strcmp(nome, (*raiz)->Esquerda->nome) < 0) {
-			rotacao_direita(raiz);
-		}
-
-		// Rotação dupla esquerda-direita
-		if (valor_balanceamento > 1 && strcmp(nome, (*raiz)->Direita->nome) < 0) {
-			//printf("No dir: %s\n", (*raiz)->Direita->nome);
-			rotacao_direita(&(*raiz)->Direita);
-			rotacao_esquerda(raiz);
-		}
-
-		// Rotação dupla direita-esquerda
-		if (valor_balanceamento < -1 && strcmp(nome, (*raiz)->Esquerda->nome) > 0) {
-			rotacao_esquerda(&(*raiz)->Esquerda);
-			rotacao_direita(raiz);
-		}
+		if ((*raiz)->fator_balanceamento < -1)
+        {
+            if (strcmp(nome, (*raiz)->Esquerda->nome) < 0) {
+                rotacao_direita(raiz);
+            }
+            else {
+                rotacao_esquerda(&(*raiz)->Esquerda);
+                rotacao_direita(raiz);
+            }
+        }
 	}
 }
 
@@ -140,41 +131,31 @@ void buscar_palavra(No* A, char palavra[], FILE *output)
 	// 1 = primeiro arg é maior
     // 0 = os dois arg são iguais
     // -1 = primeiro arg é menor
+	if (A == NULL) {
+        fprintf(output, "?]\n-");
+        return;
+    }
+
 	int cmp = strcmp(palavra, A->nome);
-	if(cmp > 0)
-	{
-		fprintf(output, "%s->", A->nome);
-		if(A->Direita == NULL)
-		{
-			fprintf(output, "?]\n-");
-		}else
-		{
-			buscar_palavra(A->Direita, palavra, output);
-		}
-	
-	}
-	if(cmp < 0)
-	{
-		fprintf(output, "%s->", A->nome);
-		if(A->Direita == NULL)
-		{
-			fprintf(output, "?]\n-");
-		}else
-		{
-			buscar_palavra(A->Esquerda, palavra, output);
-		}
-	}
-	if(cmp == 0){
-		fprintf(output, "%s]\n", A->nome);
-		for(int i = 0; i < A->quant_sinonimos; i++)
-		{
-			fprintf(output, "nada");
-			// fprintf(output, "%s", A->sinonimos[i]);
-			if(i+1 < A->quant_sinonimos){
-			 	fprintf(output, ", ");
-			}
-		}
-	}
+    if (cmp > 0) {
+        fprintf(output, "%s->", A->nome);
+        buscar_palavra(A->Direita, palavra, output);
+    }
+    else if (cmp < 0) {
+        fprintf(output, "%s->", A->nome);
+        buscar_palavra(A->Esquerda, palavra, output);
+    }
+    else {
+        fprintf(output, "%s]\n", A->nome);
+        // for(int i = 0; i < A->quant_sinonimos; i++)
+        // {
+        //     fprintf(output, "%s", A->sinonimos[i].palavra);
+        //     if(i+1 < A->quant_sinonimos){
+        //         fprintf(output, ", ");
+        //     }
+        // }
+		// Imprimir os sinônimos separados por vírgula e espaço
+    }
 }
 
 // Funcao principal
@@ -209,15 +190,7 @@ int main(int argc, char* argv[])
 	for(int i = 0; i < num_palavras; i++)
     {
         fscanf(input, " %[^ ] %d", palavra, &quant_sin);
-		//printf("Palavra: %s\n", palavra);
 		fgets(sinonimos, sizeof(sinonimos), input);
-		// printf("%s\n", sinonimos);
-		//printf("Quant de sinonimos: %d\n", quant_sin);
-		// for(int j = 0; j < quant_sin; j++){
-		// 	fscanf(input, " %s", sinonimos[j]);
-		// 	//printf("Sinonimo %d: %s\n", j, sinonimos[j]);
-		// }
-		
 		insere_no(&A, palavra, sinonimos, quant_sin);
 	}
 
