@@ -164,7 +164,7 @@ void mostrar_EDP(No* A)
 
 }
 
-void buscar_palavra(No* A, char palavra[])
+void buscar_palavra(No* A, char palavra[], FILE *output)
 {
 	// 1 = primeiro arg é maior
     // 0 = os dois arg são iguais
@@ -172,34 +172,34 @@ void buscar_palavra(No* A, char palavra[])
 	int cmp = strcmp(palavra, A->nome);
 	if(cmp > 0)
 	{
-		printf("%s->", A->nome);
+		fprintf(output, "%s->", A->nome);
 		if(A->Direita == NULL)
 		{
-			printf("?]\n-");
+			fprintf(output, "?]\n-");
 		}else
 		{
-			buscar_palavra(A->Direita, palavra);
+			buscar_palavra(A->Direita, palavra, output);
 		}
 	
 	}
 	if(cmp < 0)
 	{
-		printf("%s->", A->nome);
+		fprintf(output, "%s->", A->nome);
 		if(A->Direita == NULL)
 		{
-			printf("?]\n-");
+			fprintf(output, "?]\n-");
 		}else
 		{
-			buscar_palavra(A->Esquerda, palavra);
+			buscar_palavra(A->Esquerda, palavra, output);
 		}
 	}
 	if(cmp == 0){
-		printf("%s]\n", A->nome);
+		fprintf(output, "%s]\n", A->nome);
 		for(int i = 0; i < A->quant_sinonimos; i++)
 		{
-			printf("%s", A->sinonimos[i]);
+			fprintf(output, "%s", A->sinonimos[i]);
 			if(i+1 < A->quant_sinonimos){
-				printf(", ");
+				fprintf(output, ", ");
 			}
 		}
 	}
@@ -249,16 +249,16 @@ int main(int argc, char* argv[])
 	// Quantidade de buscas 
     int num_buscas;
 	fscanf(input, "%d", &num_buscas);
-	printf("Num de buscas: %d\n", num_buscas);
+	//printf("Num de buscas: %d\n", num_buscas);
 
 	char palavra_busca[31];
 
 	for(int i = 0; i < num_buscas; i++)
     {
 		fscanf(input, " %s", palavra_busca);
-		printf("[");
-		buscar_palavra(A, palavra_busca);
-		puts("");
+		fprintf(output,"[");
+		buscar_palavra(A, palavra_busca, output);
+		fprintf(output,"\n");
 	}
 
 	//mostrar_EPD(A);
