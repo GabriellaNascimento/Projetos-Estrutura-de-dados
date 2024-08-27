@@ -94,6 +94,34 @@ void balancear_arvore(No** raiz, char nome[]) {
     }
 }
 
+void imprimir_sinonimos_com_virgula(char *sinonimos, FILE *output) {
+    // Criar uma cópia da string para não modificar a original
+    char *sinonimos_copy = strdup(sinonimos);
+    if (sinonimos_copy == NULL) {
+        // Se a alocação falhar, retornar sem fazer nada
+        return;
+    }
+
+    char *token;
+    int primeiro = 1;
+
+    // Usando strtok para dividir a string por espaços
+    token = strtok(sinonimos_copy, " ");
+    while (token != NULL) {
+        if (!primeiro) {
+            fprintf(output, ",");
+        }
+        fprintf(output, "%s", token);
+        primeiro = 0;
+
+        // Pegando o próximo token
+        token = strtok(NULL, " ");
+    }
+
+    // Liberar a memória alocada para a cópia
+    free(sinonimos_copy);
+}
+
 void insere_no(No** raiz, char nome[], char sinonimos[], int quant_sinonimos)
 {
     if (*raiz == NULL)
@@ -111,7 +139,6 @@ void insere_no(No** raiz, char nome[], char sinonimos[], int quant_sinonimos)
 
         (*raiz)->altura = 1;
 
-        //printf("No: %s\n", (*raiz)->nome);
     }else{
         int cmp = strcmp(nome, (*raiz)->nome);
 
@@ -134,7 +161,7 @@ void buscar_palavra(No* A, char palavra[], FILE *output)
     // 0 = os dois arg são iguais
     // -1 = primeiro arg é menor
     if (A == NULL) {
-        fprintf(output, "?]\n-");
+        fprintf(output, "?]\n-\n");
         return;
     }
 
@@ -149,6 +176,7 @@ void buscar_palavra(No* A, char palavra[], FILE *output)
     }
     else {
         fprintf(output, "%s]\n", A->nome);
+        imprimir_sinonimos_com_virgula(A->sinonimos, output);
         // for(int i = 0; i < A->quant_sinonimos; i++)
         // {
         //     fprintf(output, "%s", A->sinonimos[i].palavra);
@@ -199,6 +227,7 @@ int main(int argc, char* argv[])
     // Quantidade de buscas 
     int num_buscas;
     fscanf(input, "%d", &num_buscas);
+
     //printf("Num de buscas: %d\n", num_buscas);
 
     char palavra_busca[31];
@@ -208,9 +237,8 @@ int main(int argc, char* argv[])
         fscanf(input, " %s", palavra_busca);
         fprintf(output,"[");
         buscar_palavra(A, palavra_busca, output);
-        fprintf(output,"\n");
+        //fprintf(output,"\n");
     }
-
     
     // Fechando os arquivos
     fclose(input);
