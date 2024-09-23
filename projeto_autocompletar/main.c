@@ -29,10 +29,10 @@ no* criar_no(char caracter){
     prefixo->valor = caracter;
     prefixo->verificador = 0;
 
-    for(int i = 0; i<26; i++){
+    /*for(int i = 0; i<26; i++){
         prefixo->filho[i] = (no*)calloc(26, sizeof(no));
         prefixo->filho[i] = NULL;
-    }
+    }*/
 
     return prefixo;
 }
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
 
     int quant_req;
     fscanf(input, "%d", &quant_req);
-    // printf("%d\n", quant_req);
+    //printf("%d\n", quant_req);
 
     char requisicao[21];
     for (int i = 0; i < quant_req; i++){
