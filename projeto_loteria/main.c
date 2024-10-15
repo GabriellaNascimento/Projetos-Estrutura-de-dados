@@ -18,29 +18,6 @@ no criaNo(char codigo[129], int valor){
     return filho;
 }
 
-void heapifyMin(no *raiz, int quant_apostas, int indice){
- 
-    no aux;
-    
-    int pai = indice;
-	int direita = 2*indice + 2;
-    int esquerda = 2*indice + 1;
-    
-    if(esquerda < quant_apostas && raiz[esquerda].valor < raiz[pai].valor){
-        pai = esquerda; 
-    }
-    if(direita < quant_apostas && raiz[direita].valor < raiz[pai].valor ){
-        pai = direita;
-    }
-    if(pai != indice){
-        aux = raiz[indice];
-        raiz[indice] = raiz[pai];
-        raiz[pai] = aux;
-        heapifyMin(raiz, quant_apostas, pai);
-    }
-
-}
-
 void heapifyMax(no *raiz, int quant_apostas, int indice){
  
     no aux;
@@ -66,6 +43,30 @@ void heapifyMax(no *raiz, int quant_apostas, int indice){
 
 }
     
+
+void heapifyMin(no *raiz, int quant_apostas, int indice){
+ 
+    no aux;
+    
+    int pai = indice;
+	int direita = 2*indice + 2;
+    int esquerda = 2*indice + 1;
+    
+    if(esquerda < quant_apostas && raiz[esquerda].valor < raiz[pai].valor){
+        pai = esquerda; 
+    }
+    if(direita < quant_apostas && raiz[direita].valor < raiz[pai].valor ){
+        pai = direita;
+    }
+    if(pai != indice){
+        aux = raiz[indice];
+        raiz[indice] = raiz[pai];
+        raiz[pai] = aux;
+        heapifyMin(raiz, quant_apostas, pai);
+    }
+
+}
+
 // Funcao principal
 int main(int argc, char* argv[]) {
 	// Exibindo a quantidade de argumentos
@@ -83,11 +84,11 @@ int main(int argc, char* argv[]) {
     int premio;
 
     fscanf(input, "%d", &premio);
-    printf("%d\n", premio);
+    //printf("%d\n", premio);
 
 	int quant_apostas;
 	fscanf(input, "%d", &quant_apostas);
-    printf("%d\n", quant_apostas);
+    //printf("%d\n", quant_apostas);
 
 	int resultado[10];
 	for(int i = 0; i < 10; i++){
@@ -102,10 +103,10 @@ int main(int argc, char* argv[]) {
 	for(int i = 0; i < quant_apostas; i++){
         int valor = 0;
         fscanf(input, "%s", codigo);
-		printf("%s\n", codigo);
+		//printf("%s\n", codigo);
         for(int j = 0; j < 15; j++){
             fscanf(input, "%d", &apost);
-			printf("%d\n", apost);
+			//printf("%d\n", apost);
             for(int k = 0; k < 10 ; k++){
                 if(apost == resultado[k]){
                     valor++;
